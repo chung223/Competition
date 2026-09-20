@@ -208,7 +208,7 @@ var StepSetup = (function () {
     }
 
     ul.innerHTML = s.judges.map(function (j, i) {
-      return '<li draggable="true" data-id="' + esc(j.id) + '">' +
+      return '<li class="wrap-sm" draggable="true" data-id="' + esc(j.id) + '">' +
         '<span class="handle" aria-hidden="true">⠿</span>' +
         '<span class="idx">' + (i + 1) + '</span>' +
         '<span class="grow"><input type="text" value="' + esc(j.name) + '" data-field="name" ' +
@@ -331,12 +331,12 @@ var StepSetup = (function () {
         '<strong>尚未設定獎項</strong>可先套用範本再調整名稱與名額。</div></li>';
     } else {
       ul.innerHTML = s.awards.map(function (a, i) {
-        return '<li draggable="true" data-id="' + esc(a.id) + '">' +
+        return '<li class="wrap-sm" draggable="true" data-id="' + esc(a.id) + '">' +
           '<span class="handle" aria-hidden="true">⠿</span>' +
           '<span class="idx">' + (i + 1) + '</span>' +
           '<span class="grow"><input type="text" value="' + esc(a.name) + '" data-field="name" ' +
             'aria-label="獎項名稱" placeholder="獎項名稱" autocomplete="off"></span>' +
-          '<span style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--c-text-2)">' +
+          '<span class="extra" style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--c-text-2)">' +
             '<input type="number" value="' + (a.count) + '" min="0" max="999" data-field="count" ' +
               'style="width:74px" aria-label="' + esc(a.name) + ' 名額">名' +
           '</span>' +
@@ -370,7 +370,7 @@ var StepSetup = (function () {
       var meta = TB_LABELS[k];
       var warn = (k === 'chief' && !s.judges.some(function (j) { return j.chief; }))
         ? ' <span class="tag warn">未指定主審，此條將略過</span>' : '';
-      return '<li data-key="' + k + '">' +
+      return '<li class="wrap-sm" data-key="' + k + '">' +
         '<span class="idx">' + (i + 1) + '</span>' +
         '<span class="grow"><strong style="font-size:14px">' + meta.t + '</strong>' + warn +
           '<span style="display:block;font-size:12px;color:var(--c-text-3)">' + meta.d + '</span></span>' +

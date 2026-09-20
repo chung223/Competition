@@ -163,8 +163,8 @@ var Exporter = (function () {
 '.place em{display:block;font-style:normal;font-size:10px;color:var(--gold);font-weight:700}\n' +
 '.place sup{color:var(--gold);font-size:11px}\n' +
 'tr.t1 .place{color:var(--gold)}tr.t2 .place{color:var(--silver)}tr.t3 .place{color:var(--bronze)}\n' +
-'.name{font-weight:600}\n' +
-'.award span{display:inline-block;background:#fdf3dd;color:#8a6408;border-radius:99px;padding:2px 10px;font-size:12.5px;font-weight:700}\n' +
+'.name{font-weight:600;white-space:nowrap}\n' +
+'.award span{display:inline-block;white-space:nowrap;background:#fdf3dd;color:#8a6408;border-radius:99px;padding:2px 10px;font-size:12.5px;font-weight:700}\n' +
 'footer{margin-top:22px;font-size:12px;color:var(--dim)}\n' +
 'footer ul{margin:6px 0 0;padding-left:18px}\n' +
 '.meta-box{margin-top:14px;padding:12px 14px;background:var(--soft);border-radius:9px;font-size:12.5px;color:var(--dim)}\n' +
@@ -172,11 +172,32 @@ var Exporter = (function () {
 '.sign div{flex:1;border-top:1px solid #333;padding-top:7px;font-size:12.5px;text-align:center;color:var(--dim)}\n' +
 '@media print{body{background:#fff;padding:0}.sheet{box-shadow:none;border-radius:0;padding:0;max-width:none}\n' +
 '  thead th{background:#eee!important}@page{margin:14mm}}\n' +
-'@media (max-width:640px){.sheet{padding:20px 14px}table{font-size:13px}th,td{padding:7px 6px}}\n' +
+'.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}\n' +
+'.scroll-hint{display:none;margin:8px 0 0;font-size:11.5px;color:#98a1b0;text-align:center}\n' +
+'@media (max-width:760px){\n' +
+'  body{padding:14px 10px 40px}\n' +
+'  .sheet{padding:20px 14px;border-radius:10px}\n' +
+'  h1{font-size:19px}.sub{font-size:12.5px}\n' +
+'  table{font-size:13px}th,td{padding:7px 6px}\n' +
+'  /* 橫捲時把「名次／單位」釘在左、「獎項」釘在右，關鍵資訊永遠看得到 */\n' +
+'  .place,thead th:first-child{position:sticky;left:0;z-index:3;background:#fff}\n' +
+'  thead th:first-child{background:var(--soft)}\n' +
+'  td.award,thead th:last-child{position:sticky;right:0;z-index:3;background:#fff}\n' +
+'  thead th:last-child{background:var(--soft)}\n' +
+'  .scroll-hint{display:block}\n' +
+'}\n' +
+'@media (max-width:480px){\n' +
+'  /* 手機上讓次要的「出場序」欄讓位，確保單位名稱不被折行（列印與 CSV 仍保留） */\n' +
+'  thead th:nth-child(2),tbody td:nth-child(2){display:none}\n' +
+'  .sign{flex-direction:column;gap:30px;margin-top:34px}\n' +
+'}\n' +
+'@media print{.scroll{overflow:visible}.scroll-hint{display:none!important}\n' +
+'  .place,td.award,thead th:first-child,thead th:last-child{position:static}}\n' +
 '</style>\n</head>\n<body>\n<div class="sheet">\n' +
 '<header><h1>' + esc(titleLine(s)) + '</h1>' +
   (subLine(s) ? '<div class="sub">' + esc(subLine(s)) + '</div>' : '') + '</header>\n' +
-'<table><thead>' + head + '</thead><tbody>' + bodyRows + '</tbody></table>\n' +
+'<div class="scroll"><table><thead>' + head + '</thead><tbody>' + bodyRows + '</tbody></table></div>\n' +
+'<p class="scroll-hint">← 左右滑動可檢視各評審委員的名次 →</p>\n' +
 '<footer>' + (fnHtml ? '<p>' + fnHtml + '</p>' : '') +
   (adj ? '<p><strong>名額調整</strong></p><ul>' + adj + '</ul>' : '') +
   '<div class="meta-box">' +

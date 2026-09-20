@@ -152,6 +152,12 @@ var StepScore = (function () {
     if (showQuick) renderQuickRank(judge);
     bindGridKeys(body, s.entries.length, 1);
     refreshDerived();
+
+    // 分頁列在窄螢幕會橫向捲動，切換後把當前委員捲進可視範圍
+    var activeTab = body.querySelector('.judge-tabs button[aria-selected="true"]');
+    if (activeTab && activeTab.scrollIntoView) {
+      activeTab.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }
   }
 
   /** 名次模式：依偏好順序點選，自動指派 1、2、3… */

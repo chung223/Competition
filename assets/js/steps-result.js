@@ -159,7 +159,7 @@ var StepResult = (function () {
   // ---- 輸出 ------------------------------------------------------------
   function renderExports() {
     return '<div class="card no-print"><header><h3>輸出成績</h3></header><div class="body">' +
-      '<div class="row" style="gap:10px">' +
+      '<div class="row out-grid" style="gap:10px">' +
         '<button class="btn primary" data-out="page">📄 成績單網頁（可直接寄出）</button>' +
         '<button class="btn" data-out="print">🖨 列印 / 存成 PDF</button>' +
         '<button class="btn" data-out="csv">📊 CSV（Excel）</button>' +

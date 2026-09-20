@@ -131,7 +131,7 @@ a { color: var(--c-brand); }
 [hidden] { display: none !important; }
 
 /* ---- 版面 ---------------------------------------------------------- */
-.shell { min-height: 100vh; display: flex; flex-direction: column; }
+.shell { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
 .wrap { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 16px; }
 
 /* ---- 頁首 ---------------------------------------------------------- */
@@ -154,7 +154,7 @@ a { color: var(--c-brand); }
 }
 .appbar .tools { display: flex; align-items: center; gap: 6px; }
 .iconbtn {
-  appearance: none; border: 1px solid rgba(255,255,255,.22); background: rgba(255,255,255,.08);
+  appearance: none; white-space: nowrap; border: 1px solid rgba(255,255,255,.22); background: rgba(255,255,255,.08);
   color: #fff; border-radius: var(--r-sm); height: 32px; min-width: 32px; padding: 0 9px;
   font: inherit; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
   transition: background .15s;
@@ -358,6 +358,8 @@ table.data .n { text-align: right; font-family: var(--ff-num); font-variant-nume
 table.data .c { text-align: center; }
 table.data .order-col { width: 54px; color: var(--c-text-3); font-family: var(--ff-num); text-align: center; }
 table.data .name-col { font-weight: 600; min-width: 130px; }
+table.result .name-col { white-space: nowrap; min-width: 0; }
+table.result .award-cell .tag { white-space: nowrap; }
 
 .cell-input {
   width: 84px; text-align: right; font-family: var(--ff-num); font-variant-numeric: tabular-nums;
@@ -460,16 +462,119 @@ sup.fn { color: var(--c-accent); font-size: 11px; font-weight: 700; margin-left:
 @keyframes pop { from { opacity: 0; transform: translateY(8px); } }
 
 /* ---- 響應式 -------------------------------------------------------- */
+
+/* 平板以下：收窄留白、步驟副標讓位 */
+@media (max-width: 900px) {
+  .step-head h2 { font-size: 20px; }
+
+  /* 成績表欄位多，橫捲時把「名次／單位」釘在左邊、「獎項」釘在右邊，
+     讓最關鍵的三項資訊永遠看得到，中間的委員欄才是捲動區。 */
+  table.result .place,
+  table.result thead th:first-child { position: sticky; left: 0; z-index: 3; background: var(--c-surface); }
+  table.result thead th:first-child { z-index: 4; background: var(--c-surface-2); }
+  table.result .award-cell,
+  table.result thead th:last-child { position: sticky; right: 0; z-index: 3; background: var(--c-surface); }
+  table.result thead th:last-child { z-index: 4; background: var(--c-surface-2); }
+  table.result tbody tr:hover .place,
+  table.result tbody tr:hover .award-cell { background: var(--c-surface-2); }
+  table.result tbody tr.tie-row .place,
+  table.result tbody tr.tie-row .award-cell { background: var(--c-accent-soft); }
+
+  /* 總表模式：單位名稱釘在左側，捲到右邊的委員欄時仍知道是哪一列 */
+  table.data .name-col { position: sticky; left: 0; z-index: 1; background: var(--c-surface); }
+  table.data thead th:nth-child(2) { z-index: 3; background: var(--c-surface-2); }
+  table.data tbody tr:hover .name-col { background: var(--c-surface-2); }
+}
+
+/* 手機 */
 @media (max-width: 720px) {
   body { font-size: 14.5px; }
-  .stepper .lbl { font-size: 13px; }
-  .stepper .sub { display: none; }
-  .stepper li { min-width: 108px; }
+  .wrap { padding: 0 14px; }
   .appbar .meta { display: none; }
   .card .body { padding: 14px; }
-  .navbar .status { display: none; }
-  .navbar .btn { flex: 1 1 auto; justify-content: center; }
-  .podium { grid-template-columns: 1fr; }
+  .step-head { margin-bottom: 16px; }
+
+  /* 讓五個步驟平分寬度、不需橫捲；副標讓位 */
+  .stepper li { min-width: 0; }
+  .stepper .lbl { font-size: 13px; }
+  .stepper .sub { display: none; }
+  .stepper button { padding: 10px 8px 8px; gap: 7px; }
+
+  /* iOS Safari 會在聚焦 font-size < 16px 的輸入框時自動放大頁面 */
+  input[type=text], input[type=number], input[type=date], select, textarea { font-size: 16px; }
+
+  /* 前三名改為緊湊單行，避免三張大卡片把成績表推到三個畫面之外 */
+  .podium { grid-template-columns: 1fr; gap: 6px; }
+  .podium .p {
+    display: flex; align-items: center; gap: 12px; text-align: left;
+    padding: 10px 14px; border-top: 1px solid var(--c-border); border-left: 4px solid var(--c-border-strong);
+  }
+  .podium .p:nth-child(1) { border-left-color: var(--c-medal-1); }
+  .podium .p:nth-child(2) { border-left-color: var(--c-medal-2); }
+  .podium .p:nth-child(3) { border-left-color: var(--c-medal-3); }
+  .podium .pl { flex: 0 0 auto; }
+  .podium .nm { font-size: 16px; margin: 0; flex: 1 1 auto; }
+  .podium .aw { flex: 0 0 auto; }
+
+  /* 輸出按鈕自適應欄數：寬度夠就兩欄，320px 退回單欄。
+     必須允許換行並解除 min-width，否則會被 .card 的 overflow:hidden 裁掉而按不到。 */
+  .row.out-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(146px, 1fr)); }
+  .row.out-grid .btn {
+    justify-content: center; text-align: center;
+    white-space: normal; min-width: 0; line-height: 1.35;
+  }
+}
+
+/* 窄螢幕：清單列拆成兩行，避免名稱輸入框被其他控制項擠成零寬 */
+@media (max-width: 560px) {
+  .list li.wrap-sm { flex-wrap: wrap; row-gap: 9px; padding: 10px 12px; }
+  .list li.wrap-sm .handle { order: 1; }
+  .list li.wrap-sm .idx { order: 2; }
+  .list li.wrap-sm .actions { order: 3; margin-left: auto; }
+  .list li.wrap-sm .grow { order: 4; flex: 1 1 100%; }
+  .list li.wrap-sm > select,
+  .list li.wrap-sm > label.chk,
+  .list li.wrap-sm > .extra { order: 5; }
+  .list li.wrap-sm > select { width: auto; flex: 0 0 auto; }
+  .list li.wrap-sm .grow input[type=text] { border-color: var(--c-border); background: var(--c-surface); }
+
+  /* 步驟列只留當前步驟的名稱，其餘縮成序號圓點：五步全部塞得下，不必橫捲 */
+  .stepper ol { overflow-x: visible; }
+  .stepper li { flex: 0 0 auto; min-width: 0; }
+  .stepper li.is-active { flex: 1 1 auto; min-width: 0; }
+  .stepper button { padding: 10px 9px 8px; justify-content: center; gap: 7px; }
+  .stepper li:not(.is-active) .lbl { display: none; }
+  .stepper .lbl { overflow: hidden; text-overflow: ellipsis; }
+
+  /* 導覽狀態改放按鈕上方一行；沒有訊息時自動收合不佔高度 */
+  .navbar .wrap { flex-wrap: wrap; row-gap: 8px; }
+  .navbar .status { display: block; order: -1; flex: 1 1 100%; text-align: center; font-size: 12.5px; }
+  .navbar .status:empty { display: none; }
+  .navbar .btn { flex: 1 1 0; justify-content: center; }
+
+  /* 評分表：壓縮間距讓「換算名次」欄在 320px 也能完整顯示 */
+  table.data th, table.data td { padding: 7px 6px; }
+  table.data .order-col { width: 34px; }
+  .cell-input { width: 72px; padding: 6px 7px; }
+  td.rank-preview { width: 46px; }
+
+  /* 成績表：讓次要的「出場」欄讓位，確保單位名稱與獎項不被折行 */
+  table.result thead th:nth-child(2),
+  table.result tbody td:nth-child(2) { display: none; }
+
+  .modal .body, .modal header, .modal footer { padding-left: 15px; padding-right: 15px; }
+  .announce header { padding: 16px 16px 0; }
+  .announce .scroll { padding: 16px 16px 30px; }
+}
+
+/* 觸控裝置：放大點擊目標，並讓可編輯的欄位看得出來是輸入框 */
+@media (pointer: coarse) {
+  .list .actions button { padding: 9px 10px; font-size: 15px; }
+  .list .handle { padding: 8px 4px; font-size: 17px; }
+  .list .grow input[type=text] { border-color: var(--c-border); background: var(--c-surface); }
+  .judge-tabs button { padding: 9px 15px; }
+  .seg button { padding: 9px 14px; }
+  .btn.sm { padding: 7px 12px; }
 }
 
 /* ---- 列印 ---------------------------------------------------------- */
