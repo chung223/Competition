@@ -112,8 +112,11 @@ npm test
 
 ## 發布到 GitHub Pages
 
-推送後到 repository 的 **Settings → Pages**，把 **Source** 設為 **GitHub Actions**。
-`.github/workflows/pages.yml` 會先跑測試，通過後才部署。
+`.github/workflows/pages.yml` 會在推送時先跑單元測試，通過後才部署，
+並且設定了 `enablement: true`，會自動替 repository 開啟 Pages。
+
+如果部署步驟仍回報 `Get Pages site failed`，請到 repository 的
+**Settings → Pages**，把 **Source** 手動設為 **GitHub Actions**，再重跑一次 workflow。
 
 ## 專案結構
 

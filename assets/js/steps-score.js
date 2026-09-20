@@ -284,6 +284,15 @@ var StepScore = (function () {
     if (!s.entries.length || !s.judges.length) return;
     var res = Store.computeResult();
 
+    // 所有輸入格：文字無法解析為數值時標紅（此時不會寫入 state）
+    var invalid = {};
+    $$('.cell-input', host).forEach(function (inp) {
+      var text = inp.value.trim();
+      var bad = text !== '' && !isFinite(Number(text));
+      invalid[inp.dataset.judge + '|' + inp.dataset.entry] = bad;
+      inp.classList.toggle('is-bad', bad);
+    });
+
     // 逐位委員：換算名次 + 名次模式檢核
     var judge = activeJudge();
     if (judge && s.ui.scoreView !== 'grid') {
@@ -294,9 +303,15 @@ var StepScore = (function () {
         var td = host.querySelector('[data-cell="' + cssEsc(judge.id) + '|' + cssEsc(e.id) + '"]');
         if (!td) return;
         var raw = Store.getScore(judge.id, e.id);
+        var isInvalid = invalid[judge.id + '|' + e.id];
         var pj = res.rows.filter(function (r) { return r.entryId === e.id; })[0];
         var rk = pj ? pj.perJudge[judge.id] : null;
-        if (raw === '') { td.textContent = '—'; td.classList.add('muted'); }
+        if (isInvalid) {
+          td.textContent = '⚠ 非數值';
+          td.classList.remove('muted');
+          td.style.color = 'var(--c-err)';
+          td.style.fontSize = '11.5px';
+        } else if (raw === '') { td.textContent = '—'; td.classList.add('muted'); td.style.color = ''; td.style.fontSize = ''; }
         else if (judge.mode === 'rank') {
           var bad = dupSet[Number(raw)] || Number(raw) < 1 || Number(raw) > s.entries.length;
           td.textContent = bad ? '⚠ 重複/超範圍' : '✓';
@@ -308,9 +323,9 @@ var StepScore = (function () {
           td.classList.remove('muted');
         }
         var inp = host.querySelector('.cell-input[data-judge="' + cssEsc(judge.id) + '"][data-entry="' + cssEsc(e.id) + '"]');
-        if (inp && judge.mode === 'rank') {
-          inp.classList.toggle('is-bad', raw !== '' && (dupSet[Number(raw)] || Number(raw) < 1 || Number(raw) > s.entries.length));
-        } else if (inp) inp.classList.remove('is-bad');
+        if (inp && judge.mode === 'rank' && !isInvalid) {
+          inp.classList.toggle('is-bad', raw !== '' && !!(dupSet[Number(raw)] || Number(raw) < 1 || Number(raw) > s.entries.length));
+        }
       });
       // 分頁進度點
       $$('.judge-tabs button[data-judge]').forEach(function (b) {
