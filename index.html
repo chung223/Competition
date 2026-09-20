@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW" data-theme="">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>競賽名次計算工具</title>
+<meta name="description" content="設定出場序、評審委員與獎項名額，輸入分數或名次後自動以名次法計算成績、分配獎項並輸出成績單。">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#17245a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2317245a'/%3E%3Cpath d='M9 22h4V13H9v9zm5 0h4V8h-4v14zm5 0h4v-6h-4v6z' fill='%23c8961e'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+<div class="shell">
+
+  <header class="appbar">
+    <div class="wrap">
+      <div class="brand"><span class="mark" aria-hidden="true">▦</span><span>競賽名次計算</span></div>
+      <div class="meta" id="appbarMeta"></div>
+      <div class="tools">
+        <span class="savestate" id="saveState" role="status" aria-live="polite"></span>
+        <button class="iconbtn" id="btnTheme" type="button" title="切換淺色／深色主題" aria-label="切換主題">◑</button>
+        <button class="iconbtn" id="btnMenu" type="button" aria-haspopup="dialog">檔案</button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="stepper" aria-label="設定步驟">
+    <div class="wrap" style="padding:0">
+      <ol id="stepper"></ol>
+    </div>
+  </nav>
+
+  <main>
+    <div class="wrap">
+      <!-- ============ 步驟 1：賽事與參賽單位 ============ -->
+      <section id="step-1" class="step" hidden>
+        <div class="step-head">
+          <h2>賽事資料與出場順序</h2>
+          <p class="hint">先建立參賽單位清單，<strong>清單順序即為出場序</strong>。可批次貼上名單或自動產生編號，之後仍能拖曳調整。</p>
+        </div>
+
+        <div class="card">
+          <header><h3>賽事基本資料</h3><span class="tag">會顯示於成績單</span></header>
+          <div class="body">
+            <div class="grid cols-2">
+              <label class="field"><span class="lab">賽事名稱</span>
+                <input type="text" id="metaTitle" placeholder="例：114 學年度全市音樂比賽" autocomplete="off"></label>
+              <label class="field"><span class="lab">組別 / 項目</span>
+                <input type="text" id="metaGroup" placeholder="例：國小團體組 直笛合奏" autocomplete="off"></label>
+              <label class="field"><span class="lab">比賽日期</span>
+                <input type="date" id="metaDate"></label>
+              <label class="field"><span class="lab">比賽地點</span>
+                <input type="text" id="metaVenue" placeholder="例：文化中心演奏廳" autocomplete="off"></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <header>
+            <h3>參賽單位</h3>
+            <span class="tag brand" id="entryCount">0 個單位</span>
+            <span class="grow"></span>
+            <div class="row">
+              <button class="btn sm" id="btnBulkEntries" type="button">批次輸入</button>
+              <button class="btn sm" id="btnGenEntries" type="button">自動產生編號</button>
+              <button class="btn sm" id="btnShuffleEntries" type="button" title="隨機排定出場序">隨機抽籤</button>
+              <button class="btn sm danger" id="btnClearEntries" type="button">清空</button>
+            </div>
+          </header>
+          <div class="body tight">
+            <ul class="list" id="entryList"></ul>
+            <div style="padding:12px 14px;border-top:1px solid var(--c-border)">
+              <button class="btn sm" id="btnAddEntry" type="button">＋ 新增單位</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 步驟 2：評審委員 ============ -->
+      <section id="step-2" class="step" hidden>
+        <div class="step-head">
+          <h2>評審委員</h2>
+          <p class="hint">設定委員人數與姓名。每位委員可各自使用<strong>分數</strong>或<strong>名次</strong>填寫；分數一律會先換算成該委員的名次再加總，因此給分寬嚴不同不影響結果。</p>
+        </div>
+
+        <div class="card">
+          <header>
+            <h3>委員名單</h3>
+            <span class="tag brand" id="judgeCount">0 位委員</span>
+            <span class="grow"></span>
+            <div class="row">
+              <label class="field" style="display:flex;align-items:center;gap:7px;margin:0">
+                <span class="lab" style="margin:0">快速建立</span>
+                <input type="number" id="judgeQty" min="1" max="30" value="5" style="width:66px" aria-label="委員人數">
+              </label>
+              <button class="btn sm" id="btnGenJudges" type="button">產生</button>
+              <button class="btn sm" id="btnBulkJudges" type="button">貼上姓名</button>
+            </div>
+          </header>
+          <div class="body tight">
+            <ul class="list" id="judgeList"></ul>
+            <div style="padding:12px 14px;border-top:1px solid var(--c-border)">
+              <button class="btn sm" id="btnAddJudge" type="button">＋ 新增委員</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="note info"><span class="ico">ⓘ</span>
+          <div>勾選<strong>主審</strong>可作為名次和相同時的決勝依據（於步驟 3 的進階規則中啟用）。</div>
+        </div>
+      </section>
+
+      <!-- ============ 步驟 3：獎項 ============ -->
+      <section id="step-3" class="step" hidden>
+        <div class="step-head">
+          <h2>獎項與名額</h2>
+          <p class="hint">依序由上往下配發。名次較前者先取得上方獎項，可自訂名稱與名額。</p>
+        </div>
+
+        <div class="card">
+          <header>
+            <h3>獎項設定</h3>
+            <span class="tag brand" id="awardCount">共 0 個名額</span>
+            <span class="grow"></span>
+            <div class="row">
+              <select id="awardPreset" style="width:auto" aria-label="套用獎項範本">
+                <option value="">套用範本…</option>
+                <option value="rank3">一等獎／二等獎／三等獎</option>
+                <option value="medal">金牌／銀牌／銅牌</option>
+                <option value="excellent">特優／優等／甲等</option>
+                <option value="top3">第一名／第二名／第三名</option>
+              </select>
+            </div>
+          </header>
+          <div class="body tight">
+            <ul class="list" id="awardList"></ul>
+            <div style="padding:12px 14px;border-top:1px solid var(--c-border)">
+              <button class="btn sm" id="btnAddAward" type="button">＋ 新增獎項</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <header><h3>進階計分規則</h3><span class="tag">多數情況維持預設即可</span></header>
+          <div class="body">
+            <div class="grid cols-2">
+              <label class="field"><span class="lab">同一委員給分相同時</span>
+                <select id="optTieMethod">
+                  <option value="average">並列取平均名次（1、2.5、2.5、4）</option>
+                  <option value="standard">競賽式名次（1、2、2、4）</option>
+                </select>
+                <span class="tip">平均名次可避免並列時整體名次和被壓低。</span>
+              </label>
+              <label class="field"><span class="lab">有委員漏評時</span>
+                <select id="optMissing">
+                  <option value="last">視為該委員的並列末位</option>
+                  <option value="exclude">排除完全未評分的委員</option>
+                </select>
+              </label>
+              <label class="field"><span class="lab">並列跨越獎項名額時</span>
+                <select id="optAwardTie">
+                  <option value="carry">並列同獎，後續名額順延遞減</option>
+                  <option value="expand">並列同獎，該獎項增額</option>
+                </select>
+              </label>
+              <label class="field"><span class="lab">未獲獎者標示</span>
+                <input type="text" id="optRemainder" placeholder="留空則不標示，例：佳作" autocomplete="off"></label>
+            </div>
+
+            <div style="margin-top:18px">
+              <span class="lab" style="display:block;font-size:13px;font-weight:600;color:var(--c-text-2);margin-bottom:8px">
+                名次和相同時的決勝順序（依序套用，皆相同則並列）
+              </span>
+              <ul class="list" id="tiebreakList" style="border:1px solid var(--c-border);border-radius:var(--r-md);overflow:hidden"></ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 步驟 4：評分 ============ -->
+      <section id="step-4" class="step" hidden>
+        <div class="step-head">
+          <h2>輸入成績</h2>
+          <p class="hint">可用<strong>分數</strong>或<strong>名次</strong>填寫，右側即時顯示換算後名次。支援方向鍵移動、Enter 換行、整欄貼上。</p>
+        </div>
+        <div id="scoreArea"></div>
+      </section>
+
+      <!-- ============ 步驟 5：結果 ============ -->
+      <section id="step-5" class="step" hidden>
+        <div class="step-head">
+          <h2>成績與獎項</h2>
+          <p class="hint">依名次和由低至高排序。可切換顯示內容後輸出成績單。</p>
+        </div>
+        <div id="resultArea"></div>
+      </section>
+    </div>
+  </main>
+
+  <nav class="navbar no-print" aria-label="步驟導覽">
+    <div class="wrap">
+      <button class="btn" id="btnPrev" type="button">← 上一步</button>
+      <div class="status" id="navStatus"></div>
+      <button class="btn primary" id="btnNext" type="button">下一步 →</button>
+    </div>
+  </nav>
+</div>
+
+<div id="toasts" aria-live="polite"></div>
+<div id="modalHost"></div>
+
+<script src="assets/js/rank.js"></script>
+<script src="assets/js/util.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/steps-setup.js"></script>
+<script src="assets/js/steps-score.js"></script>
+<script src="assets/js/steps-result.js"></script>
+<script src="assets/js/export.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

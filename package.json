@@ -1,0 +1,11 @@
+{
+  "name": "competition-rank",
+  "version": "1.0.0",
+  "description": "競賽名次計算工具 — 以名次法計算成績、分配獎項並輸出成績單的純靜態網頁工具",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "start": "python3 -m http.server 8080"
+  },
+  "license": "MIT"
+}
