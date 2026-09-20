@@ -112,11 +112,14 @@ npm test
 
 ## 發布到 GitHub Pages
 
-`.github/workflows/pages.yml` 會在推送時先跑單元測試，通過後才部署，
-並且設定了 `enablement: true`，會自動替 repository 開啟 Pages。
+**第一次部署前需要手動開啟一次 Pages**（Actions 的預設 token 沒有建立 Pages 站台的權限）：
 
-如果部署步驟仍回報 `Get Pages site failed`，請到 repository 的
-**Settings → Pages**，把 **Source** 手動設為 **GitHub Actions**，再重跑一次 workflow。
+1. 到 repository 的 **Settings → Pages**
+2. 把 **Source** 設為 **GitHub Actions**
+3. 到 **Actions** 分頁，對 `Deploy to GitHub Pages` 按 **Re-run jobs**（或直接再推一次 commit）
+
+之後每次推送都會自動部署：`.github/workflows/pages.yml` 會先跑單元測試，
+通過才進行部署。網址會是 `https://<你的帳號>.github.io/Competition/`。
 
 ## 專案結構
 

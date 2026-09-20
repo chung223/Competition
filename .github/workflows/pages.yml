@@ -35,7 +35,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
         with:
-          # repository 尚未開啟 Pages 時自動啟用，省去手動設定
+          # 若 token 權限足夠就自動啟用 Pages；權限不足時仍須到
+          # Settings → Pages 手動把 Source 設為 GitHub Actions（見 README）
           enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
