@@ -12,10 +12,22 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  /** 數值正規化：空白 / null / 非數字 一律視為未評分 (null) */
+  /** 全形數字與符號轉半形（注音輸入法常打出「９５．５」） */
+  function halfWidth(str) {
+    return str
+      .replace(/[\uFF10-\uFF19\uFF0B\uFF0D\uFF0E]/g, function (c) {
+        return String.fromCharCode(c.charCodeAt(0) - 0xFEE0);
+      })
+      .replace(/\u3000/g, ' ');
+  }
+
+  /** 數值正規化：空白 / null / 非數字 一律視為未評分 (null)；全形數字視同半形 */
   function num(v) {
     if (v === null || v === undefined) return null;
-    if (typeof v === 'string' && v.trim() === '') return null;
+    if (typeof v === 'string') {
+      v = halfWidth(v).trim();
+      if (v === '') return null;
+    }
     var n = Number(v);
     return isFinite(n) ? n : null;
   }
@@ -202,7 +214,9 @@
       perJudgeRanks[judge.id] = toRanks(raw, {
         mode: judge.mode === 'rank' ? 'rank' : 'score',
         tieMethod: tieMethod,
-        fillMissing: missingPolicy === 'last'
+        // 個別漏評一律補並列末位；否則漏評的單位名次和較小，反而佔便宜。
+        // missingPolicy 只決定「完全未評分的委員」要不要列入計算。
+        fillMissing: true
       });
     });
 
@@ -327,7 +341,7 @@
           while (debt > 0 && jq < quotas.length) {
             var take = Math.min(debt, quotas[jq].left);
             quotas[jq].left -= take; debt -= take;
-            if (quotas[jq].left === 0 && quotas[jq].count > 0) {
+            if (take > 0) {
               adjustments.push({
                 type: 'reduced', award: quotas[jq].name,
                 message: '「' + quotas[jq].name + '」名額由 ' + quotas[jq].count + ' 名減為 ' + (quotas[jq].count - take) + ' 名'
@@ -368,6 +382,7 @@
     compute: compute,
     TIEBREAKERS: TIEBREAKERS,
     DEFAULT_TIEBREAKERS: DEFAULT_TIEBREAKERS,
+    parseValue: num,
     _num: num
   };
 });
