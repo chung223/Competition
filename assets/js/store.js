@@ -134,10 +134,10 @@ var Store = (function () {
   }
   function setScore(judgeId, entryId, value) {
     if (!state.scores[judgeId]) state.scores[judgeId] = {};
-    var n = (value === '' || value === null || value === undefined) ? null : Number(value);
-    // 只保留有效數值；輸入中的「-」「.」或誤植的文字一律視為未填，
-    // 這樣進度統計與計算結果才會一致（輸入框會另外標紅提示）。
-    if (n === null || !isFinite(n)) delete state.scores[judgeId][entryId];
+    // 與計算核心共用同一套解析（含全形轉半形）；輸入中的「-」「.」或誤植的文字
+    // 一律視為未填，這樣進度統計與計算結果才會一致（輸入框會另外標紅提示）。
+    var n = Rank.parseValue(value);
+    if (n === null) delete state.scores[judgeId][entryId];
     else state.scores[judgeId][entryId] = n;
     scheduleSave();
   }

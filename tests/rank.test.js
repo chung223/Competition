@@ -227,3 +227,42 @@ test('options 未提供 tiebreakers 欄位時退回預設決勝順序', () => {
   assert.deepStrictEqual(r.tiebreakChain.map(c => c.key), ['sumRank'].concat(Rank.DEFAULT_TIEBREAKERS));
   assert.strictEqual(r.rows[1].place, 2);
 });
+
+// ---- 邊界情況回歸測試 ---------------------------------------------------
+test('順延遞減只扣部分名額時也要提示（3 名 → 2 名）', () => {
+  const r = Rank.compute({
+    entries: ['a', 'b', 'c', 'd', 'e'].map(id => ({ id, name: id.toUpperCase() })),
+    judges: [{ id: 'j1', name: 'J1' }],
+    scores: { j1: { a: 90, b: 90, c: 80, d: 70, e: 60 } },
+    awards: [{ name: '一等獎', count: 1 }, { name: '二等獎', count: 3 }],
+    options: { tiebreakers: [] }
+  });
+  assert.deepStrictEqual(r.rows.map(x => x.award), ['一等獎', '一等獎', '二等獎', '二等獎', '']);
+  const reduced = r.adjustments.filter(a => a.type === 'reduced');
+  assert.strictEqual(reduced.length, 1);
+  assert.ok(reduced[0].message.includes('由 3 名減為 2 名'));
+});
+
+test('「排除完全未評分的委員」時，個別漏評不會讓名次和變小而佔便宜', () => {
+  const r = Rank.compute({
+    entries: [{ id: 'a', name: 'A' }, { id: 'b', name: 'B' }, { id: 'c', name: 'C' }],
+    judges: [{ id: 'j1', name: 'J1' }, { id: 'j2', name: 'J2' }, { id: 'j3', name: 'J3' }],
+    // J2 漏評 C；J3 完全未評分（應被排除）
+    scores: { j1: { a: 90, b: 80, c: 70 }, j2: { a: 90, b: 80 }, j3: {} },
+    awards: [],
+    options: { missingPolicy: 'exclude' }
+  });
+  assert.deepStrictEqual(r.rows.map(x => x.name), ['A', 'B', 'C']);
+  const c = r.rows.find(x => x.entryId === 'c');
+  assert.strictEqual(c.perJudge.j2.rank, 3);   // 漏評補並列末位
+  assert.strictEqual(c.sumRank, 6);            // J3 不列入
+  assert.strictEqual(c.rankedCount, 2);
+});
+
+test('全形數字視同半形', () => {
+  assert.strictEqual(Rank.parseValue('９５'), 95);
+  assert.strictEqual(Rank.parseValue('　８７．５　'), 87.5);
+  assert.strictEqual(Rank.parseValue('－３'), -3);
+  assert.strictEqual(Rank.parseValue('九十'), null);
+  assert.deepStrictEqual(Rank.toRanks(['９０', 85, '９５']), [2, 3, 1]);
+});

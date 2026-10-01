@@ -294,7 +294,7 @@ var StepScore = (function () {
     var invalid = {};
     $$('.cell-input', host).forEach(function (inp) {
       var text = inp.value.trim();
-      var bad = text !== '' && !isFinite(Number(text));
+      var bad = text !== '' && Rank.parseValue(text) === null;
       invalid[inp.dataset.judge + '|' + inp.dataset.entry] = bad;
       inp.classList.toggle('is-bad', bad);
     });
